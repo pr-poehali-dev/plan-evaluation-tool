@@ -10,6 +10,7 @@ import SettingsPanel from '@/components/SettingsPanel';
 import AdditionalIndicators from '@/components/AdditionalIndicators';
 import PerformanceChart from '@/components/PerformanceChart';
 import StatisticsPanel from '@/components/StatisticsPanel';
+import HistoryFilters, { FilterState } from '@/components/HistoryFilters';
 
 interface Calculation {
   id: string;
@@ -65,11 +66,14 @@ export default function Index() {
   const [reminderTime, setReminderTime] = useState('09:00');
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [averagePercentage, setAveragePercentage] = useState(0);
+  const [filteredHistory, setFilteredHistory] = useState<Calculation[]>([]);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('calculationHistory');
     if (savedHistory) {
-      setHistory(JSON.parse(savedHistory));
+      const parsed = JSON.parse(savedHistory);
+      setHistory(parsed);
+      setFilteredHistory(parsed);
     }
 
     const savedReminderTime = localStorage.getItem('reminderTime');
@@ -114,6 +118,7 @@ export default function Index() {
 
     const updatedHistory = [newCalculation, ...history].slice(0, 20);
     setHistory(updatedHistory);
+    setFilteredHistory(updatedHistory);
     localStorage.setItem('calculationHistory', JSON.stringify(updatedHistory));
   };
 
@@ -174,7 +179,53 @@ export default function Index() {
 
   const clearHistory = () => {
     setHistory([]);
+    setFilteredHistory([]);
     localStorage.removeItem('calculationHistory');
+  };
+
+  const handleFilterChange = (filters: FilterState) => {
+    let filtered = [...history];
+
+    if (filters.scoreFilter !== 'all') {
+      const scoreValue = parseInt(filters.scoreFilter);
+      filtered = filtered.filter(calc => calc.score === scoreValue);
+    }
+
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(calc => {
+        const calcDate = new Date(calc.date.split(',')[0].split('.').reverse().join('-'));
+        return calcDate >= fromDate;
+      });
+    }
+
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(calc => {
+        const calcDate = new Date(calc.date.split(',')[0].split('.').reverse().join('-'));
+        return calcDate <= toDate;
+      });
+    }
+
+    if (filters.percentageMin) {
+      const minPercent = parseFloat(filters.percentageMin);
+      filtered = filtered.filter(calc => {
+        const percent = calc.finalPercentage || calc.percentage;
+        return percent >= minPercent;
+      });
+    }
+
+    if (filters.percentageMax) {
+      const maxPercent = parseFloat(filters.percentageMax);
+      filtered = filtered.filter(calc => {
+        const percent = calc.finalPercentage || calc.percentage;
+        return percent <= maxPercent;
+      });
+    }
+
+    setFilteredHistory(filtered);
   };
 
   const exportToCSV = () => {
@@ -534,8 +585,9 @@ export default function Index() {
               getScoreColor={getScoreColor}
             />
             <PerformanceChart history={history} />
+            <HistoryFilters onFilterChange={handleFilterChange} />
             <HistoryList
-              history={history}
+              history={filteredHistory}
               onClearHistory={clearHistory}
               onExportCSV={exportToCSV}
               onExportPDF={exportToPDF}
