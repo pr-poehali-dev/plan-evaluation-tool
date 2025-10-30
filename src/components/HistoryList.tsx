@@ -16,10 +16,11 @@ interface HistoryListProps {
   onClearHistory: () => void;
   onExportCSV: () => void;
   onExportPDF: () => void;
+  onExportDetailedReport?: () => void;
   getScoreColor: (score: number) => string;
 }
 
-export default function HistoryList({ history, onClearHistory, onExportCSV, onExportPDF, getScoreColor }: HistoryListProps) {
+export default function HistoryList({ history, onClearHistory, onExportCSV, onExportPDF, onExportDetailedReport, getScoreColor }: HistoryListProps) {
   return (
     <Card className="p-8 shadow-xl border-2">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
@@ -29,6 +30,12 @@ export default function HistoryList({ history, onClearHistory, onExportCSV, onEx
         </h2>
         {history.length > 0 && (
           <div className="flex gap-2 flex-wrap">
+            {onExportDetailedReport && (
+              <Button onClick={onExportDetailedReport} className="gap-2 bg-gradient-to-r from-gradient-purple via-gradient-pink to-gradient-orange hover:opacity-90">
+                <Icon name="FileBarChart" size={18} />
+                Отчет
+              </Button>
+            )}
             <Button variant="outline" onClick={onExportCSV} className="gap-2">
               <Icon name="FileSpreadsheet" size={18} />
               Excel
