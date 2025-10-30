@@ -3,7 +3,7 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 
 interface ResultsDisplayProps {
-  result: { percentage: number; score: number } | null;
+  result: { percentage: number; score: number; finalPercentage?: number; additionalPercentage?: number } | null;
   plan: string;
   fact: string;
   getScoreColor: (score: number) => string;
@@ -39,7 +39,7 @@ export default function ResultsDisplay({ result, plan, fact, getScoreColor, getS
                   stroke="url(#gradient)"
                   strokeWidth="12"
                   fill="none"
-                  strokeDasharray={`${(result.percentage / 100) * 553} 553`}
+                  strokeDasharray={`${((result.finalPercentage || result.percentage) / 100) * 553} 553`}
                   className="transition-all duration-1000 ease-out animate-pulse-glow"
                 />
                 <defs>
@@ -52,7 +52,7 @@ export default function ResultsDisplay({ result, plan, fact, getScoreColor, getS
               </svg>
               <div className="absolute inset-0 flex items-center justify-center flex-col">
                 <div className="text-5xl font-bold bg-gradient-to-r from-gradient-purple via-gradient-pink to-gradient-orange bg-clip-text text-transparent">
-                  {result.percentage.toFixed(1)}%
+                  {(result.finalPercentage || result.percentage).toFixed(1)}%
                 </div>
               </div>
             </div>
@@ -74,7 +74,27 @@ export default function ResultsDisplay({ result, plan, fact, getScoreColor, getS
             </div>
           </div>
 
-          <Progress value={result.percentage} className="h-3" />
+          {result.additionalPercentage !== undefined && result.additionalPercentage > 0 && (
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Базовый процент:</span>
+                  <span className="font-bold">{result.percentage.toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Дополнительный:</span>
+                  <span className="font-bold text-primary">+{result.additionalPercentage.toFixed(1)}%</span>
+                </div>
+                <div className="h-px bg-border my-2"></div>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Итоговый процент:</span>
+                  <span className="font-bold text-lg">{result.finalPercentage?.toFixed(1)}%</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Progress value={result.finalPercentage || result.percentage} className="h-3" />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-16">

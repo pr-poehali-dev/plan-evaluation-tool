@@ -7,6 +7,7 @@ import Calculator from '@/components/Calculator';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import HistoryList from '@/components/HistoryList';
 import SettingsPanel from '@/components/SettingsPanel';
+import AdditionalIndicators from '@/components/AdditionalIndicators';
 
 interface Calculation {
   id: string;
@@ -15,6 +16,16 @@ interface Calculation {
   percentage: number;
   score: number;
   date: string;
+  additionalPercentage?: number;
+  finalPercentage?: number;
+}
+
+interface Indicator {
+  id: string;
+  name: string;
+  plan: string;
+  fact: string;
+  percentage: number;
 }
 
 const getScoreFromPercentage = (percentage: number): number => {
@@ -46,10 +57,12 @@ const getScoreLabel = (score: number): string => {
 export default function Index() {
   const [plan, setPlan] = useState<string>('');
   const [fact, setFact] = useState<string>('');
-  const [result, setResult] = useState<{ percentage: number; score: number } | null>(null);
+  const [result, setResult] = useState<{ percentage: number; score: number; finalPercentage?: number; additionalPercentage?: number } | null>(null);
   const [history, setHistory] = useState<Calculation[]>([]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('09:00');
+  const [indicators, setIndicators] = useState<Indicator[]>([]);
+  const [averagePercentage, setAveragePercentage] = useState(0);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('calculationHistory');
@@ -75,24 +88,87 @@ export default function Index() {
       return;
     }
 
-    const percentage = (factNum / planNum) * 100;
-    const score = getScoreFromPercentage(percentage);
+    const basePercentage = (factNum / planNum) * 100;
+    const finalPercentage = basePercentage + averagePercentage;
+    const score = getScoreFromPercentage(finalPercentage);
 
-    setResult({ percentage, score });
+    setResult({ 
+      percentage: basePercentage, 
+      score, 
+      finalPercentage,
+      additionalPercentage: averagePercentage 
+    });
 
     const newCalculation: Calculation = {
       id: Date.now().toString(),
       plan: planNum,
       fact: factNum,
-      percentage,
+      percentage: basePercentage,
       score,
-      date: new Date().toLocaleString('ru-RU')
+      date: new Date().toLocaleString('ru-RU'),
+      additionalPercentage: averagePercentage,
+      finalPercentage
     };
 
     const updatedHistory = [newCalculation, ...history].slice(0, 20);
     setHistory(updatedHistory);
     localStorage.setItem('calculationHistory', JSON.stringify(updatedHistory));
   };
+
+  const addIndicator = () => {
+    const newIndicator: Indicator = {
+      id: Date.now().toString(),
+      name: '',
+      plan: '',
+      fact: '',
+      percentage: 0
+    };
+    setIndicators([...indicators, newIndicator]);
+  };
+
+  const removeIndicator = (id: string) => {
+    setIndicators(indicators.filter(ind => ind.id !== id));
+  };
+
+  const updateIndicator = (id: string, field: 'name' | 'plan' | 'fact', value: string) => {
+    setIndicators(indicators.map(ind => {
+      if (ind.id === id) {
+        const updated = { ...ind, [field]: value };
+        if (field === 'plan' || field === 'fact') {
+          const planNum = parseFloat(updated.plan);
+          const factNum = parseFloat(updated.fact);
+          if (!isNaN(planNum) && !isNaN(factNum) && planNum > 0) {
+            updated.percentage = (factNum / planNum) * 100;
+          } else {
+            updated.percentage = 0;
+          }
+        }
+        return updated;
+      }
+      return ind;
+    }));
+  };
+
+  useEffect(() => {
+    if (indicators.length === 0) {
+      setAveragePercentage(0);
+      return;
+    }
+
+    const validIndicators = indicators.filter(ind => {
+      const planNum = parseFloat(ind.plan);
+      const factNum = parseFloat(ind.fact);
+      return !isNaN(planNum) && !isNaN(factNum) && planNum > 0;
+    });
+
+    if (validIndicators.length === 0) {
+      setAveragePercentage(0);
+      return;
+    }
+
+    const sum = validIndicators.reduce((acc, ind) => acc + ind.percentage, 0);
+    setAveragePercentage(sum / validIndicators.length);
+  }, [indicators]);
 
   const clearHistory = () => {
     setHistory([]);
@@ -261,20 +337,30 @@ export default function Index() {
           </TabsList>
 
           <TabsContent value="calculator" className="animate-scale-in">
-            <div className="grid lg:grid-cols-2 gap-8">
-              <Calculator
-                plan={plan}
-                fact={fact}
-                onPlanChange={setPlan}
-                onFactChange={setFact}
-                onCalculate={calculateScore}
-              />
-              <ResultsDisplay
-                result={result}
-                plan={plan}
-                fact={fact}
-                getScoreColor={getScoreColor}
-                getScoreLabel={getScoreLabel}
+            <div className="space-y-8">
+              <div className="grid lg:grid-cols-2 gap-8">
+                <Calculator
+                  plan={plan}
+                  fact={fact}
+                  onPlanChange={setPlan}
+                  onFactChange={setFact}
+                  onCalculate={calculateScore}
+                />
+                <ResultsDisplay
+                  result={result}
+                  plan={plan}
+                  fact={fact}
+                  getScoreColor={getScoreColor}
+                  getScoreLabel={getScoreLabel}
+                />
+              </div>
+              
+              <AdditionalIndicators
+                indicators={indicators}
+                onAddIndicator={addIndicator}
+                onRemoveIndicator={removeIndicator}
+                onUpdateIndicator={updateIndicator}
+                averagePercentage={averagePercentage}
               />
             </div>
           </TabsContent>
