@@ -9,6 +9,7 @@ import HistoryList from '@/components/HistoryList';
 import SettingsPanel from '@/components/SettingsPanel';
 import AdditionalIndicators from '@/components/AdditionalIndicators';
 import PerformanceChart from '@/components/PerformanceChart';
+import StatisticsPanel from '@/components/StatisticsPanel';
 
 interface Calculation {
   id: string;
@@ -367,6 +368,11 @@ export default function Index() {
           </TabsContent>
 
           <TabsContent value="history" className="animate-scale-in space-y-8">
+            <StatisticsPanel 
+              history={history}
+              getScoreLabel={getScoreLabel}
+              getScoreColor={getScoreColor}
+            />
             <PerformanceChart history={history} />
             <HistoryList
               history={history}
