@@ -17,6 +17,9 @@ interface AdditionalIndicatorsProps {
   onRemoveIndicator: (id: string) => void;
   onUpdateIndicator: (id: string, field: 'name' | 'plan' | 'fact', value: string) => void;
   averagePercentage: number;
+  employeeCount: string;
+  onEmployeeCountChange: (value: string) => void;
+  distributedPercentage: number;
 }
 
 export default function AdditionalIndicators({
@@ -24,7 +27,10 @@ export default function AdditionalIndicators({
   onAddIndicator,
   onRemoveIndicator,
   onUpdateIndicator,
-  averagePercentage
+  averagePercentage,
+  employeeCount,
+  onEmployeeCountChange,
+  distributedPercentage
 }: AdditionalIndicatorsProps) {
   return (
     <Card className="p-8 shadow-xl border-2 hover:shadow-2xl transition-shadow">
@@ -112,18 +118,53 @@ export default function AdditionalIndicators({
       </div>
 
       {indicators.length > 0 && (
-        <div className="p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg border-2 border-purple-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Средний процент выполнения</div>
-              <div className="text-xs text-muted-foreground">
-                По {indicators.length} показател{indicators.length === 1 ? 'ю' : 'ям'}
+        <div className="space-y-4">
+          <div className="p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg border-2 border-purple-200">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Средний процент выполнения</div>
+                <div className="text-xs text-muted-foreground">
+                  По {indicators.length} показател{indicators.length === 1 ? 'ю' : 'ям'}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-bold bg-gradient-to-r from-gradient-purple to-gradient-pink bg-clip-text text-transparent">
+                  {averagePercentage.toFixed(1)}%
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-4xl font-bold bg-gradient-to-r from-gradient-purple to-gradient-pink bg-clip-text text-transparent">
-                {averagePercentage.toFixed(1)}%
+
+            <div className="border-t pt-4">
+              <div className="flex items-end gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-semibold text-muted-foreground mb-2 block flex items-center gap-2">
+                    <Icon name="Users" size={16} />
+                    Количество сотрудников
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="Введите количество"
+                    min="1"
+                    value={employeeCount}
+                    onChange={(e) => onEmployeeCountChange(e.target.value)}
+                    className="h-10"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm text-muted-foreground mb-2">На каждого сотрудника</div>
+                  <div className="h-10 px-3 bg-primary/10 rounded-md flex items-center justify-center border">
+                    <span className="font-bold text-lg">
+                      {distributedPercentage > 0 ? `${distributedPercentage.toFixed(2)}%` : '—'}
+                    </span>
+                  </div>
+                </div>
               </div>
+              {parseFloat(employeeCount) > 0 && (
+                <div className="mt-3 text-xs text-muted-foreground flex items-center gap-1">
+                  <Icon name="Calculator" size={14} />
+                  {averagePercentage.toFixed(1)}% ÷ {employeeCount} = {distributedPercentage.toFixed(2)}%
+                </div>
+              )}
             </div>
           </div>
         </div>

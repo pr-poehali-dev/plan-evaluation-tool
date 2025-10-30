@@ -25,6 +25,9 @@ export default function Index() {
     setFilteredHistory,
     indicators,
     averagePercentage,
+    employeeCount,
+    setEmployeeCount,
+    distributedPercentage,
     calculateScore,
     addIndicator,
     removeIndicator,
@@ -98,6 +101,9 @@ export default function Index() {
                 onRemoveIndicator={removeIndicator}
                 onUpdateIndicator={updateIndicator}
                 averagePercentage={averagePercentage}
+                employeeCount={employeeCount}
+                onEmployeeCountChange={setEmployeeCount}
+                distributedPercentage={distributedPercentage}
               />
             </div>
           </TabsContent>

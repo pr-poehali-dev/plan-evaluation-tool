@@ -53,6 +53,8 @@ export function useCalculation() {
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [averagePercentage, setAveragePercentage] = useState(0);
   const [filteredHistory, setFilteredHistory] = useState<Calculation[]>([]);
+  const [employeeCount, setEmployeeCount] = useState<string>('');
+  const [distributedPercentage, setDistributedPercentage] = useState(0);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('calculationHistory');
@@ -72,14 +74,15 @@ export function useCalculation() {
     }
 
     const basePercentage = (factNum / planNum) * 100;
-    const finalPercentage = basePercentage + averagePercentage;
+    const additionalPercent = distributedPercentage > 0 ? distributedPercentage : averagePercentage;
+    const finalPercentage = basePercentage + additionalPercent;
     const score = getScoreFromPercentage(finalPercentage);
 
     setResult({ 
       percentage: basePercentage, 
       score, 
       finalPercentage,
-      additionalPercentage: averagePercentage 
+      additionalPercentage: additionalPercent 
     });
 
     const newCalculation: Calculation = {
@@ -89,7 +92,7 @@ export function useCalculation() {
       percentage: basePercentage,
       score,
       date: new Date().toLocaleString('ru-RU'),
-      additionalPercentage: averagePercentage,
+      additionalPercentage: additionalPercent,
       finalPercentage
     };
 
@@ -136,6 +139,7 @@ export function useCalculation() {
   useEffect(() => {
     if (indicators.length === 0) {
       setAveragePercentage(0);
+      setDistributedPercentage(0);
       return;
     }
 
@@ -147,12 +151,21 @@ export function useCalculation() {
 
     if (validIndicators.length === 0) {
       setAveragePercentage(0);
+      setDistributedPercentage(0);
       return;
     }
 
     const sum = validIndicators.reduce((acc, ind) => acc + ind.percentage, 0);
-    setAveragePercentage(sum / validIndicators.length);
-  }, [indicators]);
+    const avg = sum / validIndicators.length;
+    setAveragePercentage(avg);
+
+    const empCount = parseFloat(employeeCount);
+    if (!isNaN(empCount) && empCount > 0) {
+      setDistributedPercentage(avg / empCount);
+    } else {
+      setDistributedPercentage(0);
+    }
+  }, [indicators, employeeCount]);
 
   const clearHistory = () => {
     setHistory([]);
@@ -171,6 +184,9 @@ export function useCalculation() {
     setFilteredHistory,
     indicators,
     averagePercentage,
+    employeeCount,
+    setEmployeeCount,
+    distributedPercentage,
     calculateScore,
     addIndicator,
     removeIndicator,
