@@ -8,6 +8,7 @@ import ResultsDisplay from '@/components/ResultsDisplay';
 import HistoryList from '@/components/HistoryList';
 import SettingsPanel from '@/components/SettingsPanel';
 import AdditionalIndicators from '@/components/AdditionalIndicators';
+import PerformanceChart from '@/components/PerformanceChart';
 
 interface Calculation {
   id: string;
@@ -365,7 +366,8 @@ export default function Index() {
             </div>
           </TabsContent>
 
-          <TabsContent value="history" className="animate-scale-in">
+          <TabsContent value="history" className="animate-scale-in space-y-8">
+            <PerformanceChart history={history} />
             <HistoryList
               history={history}
               onClearHistory={clearHistory}
