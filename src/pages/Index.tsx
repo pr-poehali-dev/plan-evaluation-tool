@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import Calculator from '@/components/Calculator';
 import ResultsDisplay from '@/components/ResultsDisplay';
+import AdditionalResultsTable from '@/components/AdditionalResultsTable';
 import HistoryList from '@/components/HistoryList';
 import SettingsPanel from '@/components/SettingsPanel';
 import AdditionalIndicators from '@/components/AdditionalIndicators';
@@ -103,6 +104,13 @@ export default function Index() {
                 averagePercentage={averagePercentage}
                 employeeCount={employeeCount}
                 onEmployeeCountChange={setEmployeeCount}
+                distributedPercentage={distributedPercentage}
+              />
+
+              <AdditionalResultsTable
+                indicators={indicators}
+                averagePercentage={averagePercentage}
+                employeeCount={employeeCount}
                 distributedPercentage={distributedPercentage}
               />
             </div>
