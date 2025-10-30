@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import Icon from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import Icon from '@/components/ui/icon';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import Calculator from '@/components/Calculator';
+import ResultsDisplay from '@/components/ResultsDisplay';
+import HistoryList from '@/components/HistoryList';
+import SettingsPanel from '@/components/SettingsPanel';
 
 interface Calculation {
   id: string;
@@ -232,7 +231,6 @@ export default function Index() {
   const disableNotifications = () => {
     setNotificationsEnabled(false);
   };
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-12 px-4">
@@ -264,310 +262,41 @@ export default function Index() {
 
           <TabsContent value="calculator" className="animate-scale-in">
             <div className="grid lg:grid-cols-2 gap-8">
-              <Card className="p-8 shadow-xl border-2 hover:shadow-2xl transition-shadow">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <Icon name="ClipboardList" size={24} className="text-primary" />
-                  Данные для расчета
-                </h2>
-
-                <div className="space-y-6">
-                  <div>
-                    <Label htmlFor="plan" className="text-base font-semibold mb-2 block">
-                      План
-                    </Label>
-                    <Input
-                      id="plan"
-                      type="number"
-                      placeholder="Введите плановое значение"
-                      value={plan}
-                      onChange={(e) => setPlan(e.target.value)}
-                      className="text-lg h-12"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="fact" className="text-base font-semibold mb-2 block">
-                      Факт
-                    </Label>
-                    <Input
-                      id="fact"
-                      type="number"
-                      placeholder="Введите фактическое значение"
-                      value={fact}
-                      onChange={(e) => setFact(e.target.value)}
-                      className="text-lg h-12"
-                    />
-                  </div>
-
-                  <Button
-                    onClick={calculateScore}
-                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-gradient-purple to-gradient-pink hover:opacity-90 transition-opacity"
-                  >
-                    <Icon name="Sparkles" size={20} className="mr-2" />
-                    Рассчитать оценку
-                  </Button>
-                </div>
-
-                <div className="mt-8 p-4 bg-muted/50 rounded-lg">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <Icon name="Info" size={18} />
-                    Шкала оценок
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>0-10%</span>
-                      <span className="font-semibold">Оценка 0</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>11-35%</span>
-                      <span className="font-semibold">Оценка 1</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>36-50%</span>
-                      <span className="font-semibold">Оценка 2</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>51-65%</span>
-                      <span className="font-semibold">Оценка 3</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>66-79%</span>
-                      <span className="font-semibold">Оценка 4</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>80-100%</span>
-                      <span className="font-semibold">Оценка 5</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-8 shadow-xl border-2 hover:shadow-2xl transition-shadow">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <Icon name="TrendingUp" size={24} className="text-primary" />
-                  Результаты расчета
-                </h2>
-
-                {result ? (
-                  <div className="space-y-8 animate-fade-in">
-                    <div className="relative">
-                      <div className="w-48 h-48 mx-auto relative">
-                        <svg className="w-full h-full transform -rotate-90">
-                          <circle
-                            cx="96"
-                            cy="96"
-                            r="88"
-                            stroke="currentColor"
-                            strokeWidth="12"
-                            fill="none"
-                            className="text-muted"
-                          />
-                          <circle
-                            cx="96"
-                            cy="96"
-                            r="88"
-                            stroke="url(#gradient)"
-                            strokeWidth="12"
-                            fill="none"
-                            strokeDasharray={`${(result.percentage / 100) * 553} 553`}
-                            className="transition-all duration-1000 ease-out animate-pulse-glow"
-                          />
-                          <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#9b87f5" />
-                              <stop offset="50%" stopColor="#D946EF" />
-                              <stop offset="100%" stopColor="#F97316" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center flex-col">
-                          <div className="text-5xl font-bold bg-gradient-to-r from-gradient-purple via-gradient-pink to-gradient-orange bg-clip-text text-transparent">
-                            {result.percentage.toFixed(1)}%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={`p-6 rounded-2xl bg-gradient-to-r ${getScoreColor(result.score)} text-white text-center shadow-lg animate-scale-in`}>
-                      <div className="text-6xl font-bold mb-2">{result.score}</div>
-                      <div className="text-xl font-semibold">{getScoreLabel(result.score)}</div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-muted/50 rounded-lg text-center">
-                        <div className="text-sm text-muted-foreground mb-1">План</div>
-                        <div className="text-2xl font-bold">{parseFloat(plan).toLocaleString()}</div>
-                      </div>
-                      <div className="p-4 bg-muted/50 rounded-lg text-center">
-                        <div className="text-sm text-muted-foreground mb-1">Факт</div>
-                        <div className="text-2xl font-bold">{parseFloat(fact).toLocaleString()}</div>
-                      </div>
-                    </div>
-
-                    <Progress value={result.percentage} className="h-3" />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-16">
-                    <Icon name="BarChart3" size={64} className="mb-4 opacity-20" />
-                    <p className="text-lg">Введите данные и нажмите "Рассчитать оценку"</p>
-                    <p className="text-sm mt-2">для получения результатов</p>
-                  </div>
-                )}
-              </Card>
+              <Calculator
+                plan={plan}
+                fact={fact}
+                onPlanChange={setPlan}
+                onFactChange={setFact}
+                onCalculate={calculateScore}
+              />
+              <ResultsDisplay
+                result={result}
+                plan={plan}
+                fact={fact}
+                getScoreColor={getScoreColor}
+                getScoreLabel={getScoreLabel}
+              />
             </div>
           </TabsContent>
 
           <TabsContent value="history" className="animate-scale-in">
-            <Card className="p-8 shadow-xl border-2">
-              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                  <Icon name="History" size={24} className="text-primary" />
-                  История расчетов
-                </h2>
-                {history.length > 0 && (
-                  <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" onClick={exportToCSV} className="gap-2">
-                      <Icon name="FileSpreadsheet" size={18} />
-                      Excel
-                    </Button>
-                    <Button variant="outline" onClick={exportToPDF} className="gap-2">
-                      <Icon name="FileText" size={18} />
-                      PDF
-                    </Button>
-                    <Button variant="outline" onClick={clearHistory} className="gap-2">
-                      <Icon name="Trash2" size={18} />
-                      Очистить
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-                  <Icon name="FileText" size={64} className="mb-4 opacity-20" />
-                  <p className="text-lg">История расчетов пуста</p>
-                  <p className="text-sm mt-2">Выполните расчет в калькуляторе</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {history.map((calc, index) => (
-                    <div
-                      key={calc.id}
-                      className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-100 hover:border-purple-300 transition-colors animate-fade-in"
-                      style={{ animationDelay: `${index * 0.05}s` }}
-                    >
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">План</div>
-                          <div className="font-semibold">{calc.plan.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">Факт</div>
-                          <div className="font-semibold">{calc.fact.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">Процент</div>
-                          <div className="font-semibold">{calc.percentage.toFixed(1)}%</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1">Оценка</div>
-                          <div className={`font-bold text-lg bg-gradient-to-r ${getScoreColor(calc.score)} bg-clip-text text-transparent`}>
-                            {calc.score}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-muted-foreground mb-1">Дата</div>
-                          <div className="text-sm">{calc.date}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
+            <HistoryList
+              history={history}
+              onClearHistory={clearHistory}
+              onExportCSV={exportToCSV}
+              onExportPDF={exportToPDF}
+              getScoreColor={getScoreColor}
+            />
           </TabsContent>
 
           <TabsContent value="settings" className="animate-scale-in">
-            <Card className="p-8 shadow-xl border-2 max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Icon name="Settings" size={24} className="text-primary" />
-                Настройки
-              </h2>
-
-              <div className="space-y-6">
-                <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-100">
-                  <div className="flex items-start gap-4">
-                    <Icon name="Bell" size={24} className="text-primary mt-1" />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2">Push-уведомления</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Получайте напоминания о проверке выполнения плана
-                      </p>
-                      
-                      {notificationsEnabled ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-green-600">
-                            <Icon name="CheckCircle" size={20} />
-                            <span className="font-semibold">Уведомления включены</span>
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor="reminderTime" className="text-sm font-semibold mb-2 block">
-                              Время напоминания
-                            </Label>
-                            <Input
-                              id="reminderTime"
-                              type="time"
-                              value={reminderTime}
-                              onChange={(e) => handleReminderTimeChange(e.target.value)}
-                              className="max-w-xs"
-                            />
-                          </div>
-
-                          <Button 
-                            variant="outline" 
-                            onClick={disableNotifications}
-                            className="gap-2"
-                          >
-                            <Icon name="BellOff" size={18} />
-                            Отключить уведомления
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button 
-                          onClick={requestNotificationPermission}
-                          className="bg-gradient-to-r from-gradient-purple to-gradient-pink hover:opacity-90 transition-opacity gap-2"
-                        >
-                          <Icon name="Bell" size={18} />
-                          Включить уведомления
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6 bg-muted/50 rounded-lg">
-                  <div className="flex items-start gap-4">
-                    <Icon name="Info" size={24} className="text-primary mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">О приложении</h3>
-                      <div className="text-sm text-muted-foreground space-y-2">
-                        <p>Приложение для автоматического расчета процента выполнения плана и присвоения оценки по шкале от 0 до 5.</p>
-                        <p className="font-semibold mt-4">Возможности:</p>
-                        <ul className="list-disc list-inside space-y-1 ml-2">
-                          <li>Расчет процента выполнения</li>
-                          <li>Автоматическое присвоение оценки</li>
-                          <li>История всех расчетов</li>
-                          <li>Экспорт в Excel и PDF</li>
-                          <li>Push-уведомления</li>
-                          <li>Работает офлайн</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
+            <SettingsPanel
+              notificationsEnabled={notificationsEnabled}
+              reminderTime={reminderTime}
+              onRequestNotificationPermission={requestNotificationPermission}
+              onReminderTimeChange={handleReminderTimeChange}
+              onDisableNotifications={disableNotifications}
+            />
           </TabsContent>
         </Tabs>
       </div>
