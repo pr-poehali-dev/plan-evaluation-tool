@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Calculation {
   id: string;
@@ -85,6 +87,84 @@ export default function Index() {
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem('calculationHistory');
+  };
+
+  const exportToCSV = () => {
+    if (history.length === 0) return;
+
+    const headers = ['План', 'Факт', 'Процент выполнения', 'Оценка', 'Дата'];
+    const rows = history.map(calc => [
+      calc.plan,
+      calc.fact,
+      `${calc.percentage.toFixed(1)}%`,
+      calc.score,
+      calc.date
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `история_расчетов_${new Date().toLocaleDateString('ru-RU')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToPDF = () => {
+    if (history.length === 0) return;
+
+    const doc = new jsPDF();
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text('История расчетов выполнения плана', 14, 20);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Дата экспорта: ${new Date().toLocaleDateString('ru-RU')}`, 14, 28);
+
+    const tableData = history.map(calc => [
+      calc.plan.toLocaleString(),
+      calc.fact.toLocaleString(),
+      `${calc.percentage.toFixed(1)}%`,
+      calc.score.toString(),
+      getScoreLabel(calc.score),
+      calc.date
+    ]);
+
+    autoTable(doc, {
+      startY: 35,
+      head: [['План', 'Факт', 'Процент', 'Оценка', 'Результат', 'Дата']],
+      body: tableData,
+      theme: 'grid',
+      styles: { 
+        font: 'helvetica',
+        fontSize: 9,
+        cellPadding: 3
+      },
+      headStyles: {
+        fillColor: [155, 135, 245],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        0: { halign: 'right' },
+        1: { halign: 'right' },
+        2: { halign: 'center' },
+        3: { halign: 'center' },
+        4: { halign: 'left' },
+        5: { halign: 'left' }
+      }
+    });
+
+    doc.save(`история_расчетов_${new Date().toLocaleDateString('ru-RU')}.pdf`);
   };
 
   return (
@@ -268,16 +348,26 @@ export default function Index() {
 
           <TabsContent value="history" className="animate-scale-in">
             <Card className="p-8 shadow-xl border-2">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <h2 className="text-2xl font-bold flex items-center gap-2">
                   <Icon name="History" size={24} className="text-primary" />
                   История расчетов
                 </h2>
                 {history.length > 0 && (
-                  <Button variant="outline" onClick={clearHistory} className="gap-2">
-                    <Icon name="Trash2" size={18} />
-                    Очистить историю
-                  </Button>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" onClick={exportToCSV} className="gap-2">
+                      <Icon name="FileSpreadsheet" size={18} />
+                      Excel
+                    </Button>
+                    <Button variant="outline" onClick={exportToPDF} className="gap-2">
+                      <Icon name="FileText" size={18} />
+                      PDF
+                    </Button>
+                    <Button variant="outline" onClick={clearHistory} className="gap-2">
+                      <Icon name="Trash2" size={18} />
+                      Очистить
+                    </Button>
+                  </div>
                 )}
               </div>
 
